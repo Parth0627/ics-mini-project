@@ -1,0 +1,63 @@
+{
+  "experiment_name": "E2-PENDING-AUDIT",
+  "mode": "within",
+  "seed": 42,
+  "top_k": 10,
+  "model": {
+    "name": "rf",
+    "params": {}
+  },
+  "allow_real_data": false,
+  "confirm_provenance_audit": false,
+  "source": {
+    "path": "data/processed/ufu-doh-audited.csv",
+    "protocol": "doh",
+    "label_column": "label",
+    "label_mapping": {
+      "Benign": 0,
+      "Exfiltration": 1
+    },
+    "feature_columns": [
+      "src2dst_min_length",
+      "src2dst_max_length",
+      "src2dst_mean_length",
+      "src2dst_stddev_length",
+      "dst2src_min_length",
+      "dst2src_max_length",
+      "dst2src_mean_length",
+      "dst2src_stddev_length",
+      "bidirectional_max_length",
+      "bidirectional_mean_length",
+      "bidirectional_stddev_length",
+      "src2dst_min_time",
+      "src2dst_max_time",
+      "src2dst_mean_time",
+      "src2dst_stddev_time",
+      "dst2src_min_time",
+      "dst2src_max_time",
+      "dst2src_mean_time",
+      "dst2src_stddev_time",
+      "bidirectional_min_time",
+      "bidirectional_max_time",
+      "bidirectional_mean_time",
+      "bidirectional_stddev_time",
+      "num_src2dst",
+      "num_dst2src",
+      "flow_duration",
+      "byte_count",
+      "handshake_time"
+    ],
+    "id_column": "row_id",
+    "group_column": "capture_id",
+    "provenance": {
+      "kind": "genuine",
+      "description": "PENDING acquisition, true header, label, normalization and capture metadata verification"
+    },
+    "split": {
+      "train": 0.6,
+      "validation": 0.2,
+      "test": 0.2,
+      "adaptation": 0
+    }
+  }
+}

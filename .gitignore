@@ -1,0 +1,38 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.DS_Store
+tmp/
+data/raw/*
+data/processed/*
+data/demo/*
+!data/**/.gitkeep
+results/runs/*
+!results/runs/.gitkeep
+*.joblib
+*.pcap
+*.pcapng
+*.7z*
+
+
+# macOS
+.DS_Store
+
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Temporary files
+tmp/

@@ -1,0 +1,17 @@
+{
+  "inspection_date": "2026-10-14",
+  "initial_workspace": "/Users/avglarry0627/IcsMiniProject",
+  "initial_git_repository": false,
+  "requested_destination_existed": false,
+  "initial_files": [
+    {
+      "name": "ICS_Rsearch_Paper.pdf",
+      "bytes": 412922,
+      "sha256": "f29de85708c73fa39d2d5c885538902b0fd6852991ab0d7c58fb37e932688812"
+    }
+  ],
+  "preserved_pdf_copy_sha256": "f29de85708c73fa39d2d5c885538902b0fd6852991ab0d7c58fb37e932688812",
+  "document_pages": 20,
+  "document_type": "project_overview_and_methodology_guide",
+  "historical_results_verified": false
+}

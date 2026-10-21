@@ -1,0 +1,843 @@
+--- PAGE 1 ---
+PROJECT OVERVIEW
+AND METHODOLOGY GUIDE
+DNS-Based Covert Channel Detection Using Machine Learning
+A Comparative and Cross-Dataset Analysis of DNS Exfiltration and DNS-over-HTTPS
+Traffic
+Figure 1. High-level architecture of the research framework.
+Team reference document • 14 October 2026
+Aryan Dhokare • Ojas Jain • Sharayu Pathare • Parth Pandya
+MIT World Peace University, Pune
+Purpose: shared understanding, implementation walkthrough, experiment interpretation, and viva preparation.
+How to Use This Document
+This document explains the research problem, intended methodology, current implementation context,
+experiments E1–E8, feature analysis, metrics, visualizations, limitations, and the evidence that can
+responsibly be presented. It is written for teammates who need to understand both what the system does and
+what its results do—and do not—show.
+Evidence note This guide is based on the research-paper draft “DNS-Based Covert Channel Detection
+Using Machine Learning: A Comparative and Cross-Dataset Analysis of DNS Exfiltration and DNS-over-
+HTTPS Traffic” and the experiment summaries, dashboard outputs, and audit notes shared in this
+conversation. The local project repository was not directly inspected during creation of this document.
+Therefore, implementation details and metrics described as reported should be checked against the
+current run-specific files before formal submission.
+Contents
+ 1. Executive summary
+ 2. Problem statement and background
+ 3. Research gap, objectives, questions, and hypotheses
+ 4. Datasets and feature spaces
+
+--- PAGE 2 ---
+DNS COVERT-CHANNEL DETECTION | PROJECT GUIDE
+ 5. System architecture and pipeline
+ 6. Preprocessing and feature engineering
+ 7. Machine-learning models
+ 8. Evaluation metrics
+ 9. Experiment E1 and E2: within-dataset detection
+ 10. Experiment E3 and E4: cross-protocol diagnostics
+ 11. Experiment E5 and E6: feature analysis
+ 12. Experiment E7 and E8: external evaluation
+ 13. Explainability: feature importance and SHAP
+ 14. Current reported results and inconsistencies
+ 15. Threats to validity and research integrity
+ 16. Running, reviewing, and reporting the project
+ 17. Viva preparation and glossary
+ 18. References
+1. Executive Summary
+The project studies machine-learning-based detection of DNS-related covert communication and data
+exfiltration. Conventional DNS (Do53) can expose the queried domain and DNS fields to a network observer.
+DNS-over-HTTPS (DoH) carries DNS messages inside encrypted HTTPS connections, hiding query content from
+an ordinary passive observer and shifting detection toward observable flow, timing, size, and TLS-related
+characteristics.
+The research framework compares six classifiers—Logistic Regression (LR), K-Nearest Neighbors (KNN),
+Support Vector Machine (SVM), Random Forest (RF), XGBoost (XGB), and Multi-Layer Perceptron (MLP). Eight
+experiments organize the work: two within-dataset baselines, two cross-protocol transfer directions, a
+feature-group ablation, top-K feature selection, external benchmark evaluation, and DNSTunnel2026
+validation/transfer analysis.
+The project combines metric reporting with feature analysis, SHAP explanations, saved run configurations,
+held-out predictions, plots, and a dashboard. The important scientific challenge is generalization: high
+performance on a random split from one dataset does not prove that the model will work on unseen domains,
+sessions, campaigns, capture periods, or different protocols.
+Main takeaway The strongest defensible project story is not “every model is perfect.” It is that a
+comparative framework is being used to study within-dataset detection, cross-dataset/protocol transfer,
+feature relevance, and the limits of random-split evaluation.
+Project at a glance
+Item Description
+Problem Detect traffic labelled as DNS/DoH exfiltration while
+controlling false alarms.
+Primary datasets UFU-Do53-EXF and UFU-DoH-EXF.
+External datasets CIC-Bell-DNS-EXF-2021, CIRA-CIC-DoHBrw-2020,
+DNSTunnel2026.
+Team reference document • 14 October 2026
+
+--- PAGE 3 ---
+DNS COVERT-CHANNEL DETECTION | PROJECT GUIDE
+Item Description
+Models LR, KNN, SVM, RF, XGBoost, MLP.
+Experiments E1–E8: baselines, transfer diagnostics, feature studies,
+benchmark/external validation.
+Analysis Precision, recall, F1, ROC-AUC, PR-AUC, FPR, confusion
+matrices, feature importance, SHAP.
+Main risk Dataset/campaign-specific patterns can inflate random-
+split performance.
+Current status caveat Reported results vary by run and artifact. Use exact run
+IDs and verify files before submission.
+2. Problem Statement and Background
+2.1 Problem statement
+Organizations depend on DNS, so blocking all DNS communication is usually impractical. An attacker may
+abuse DNS queries to move encoded fragments of unauthorized data to infrastructure under their control.
+DoH creates an additional monitoring challenge because DNS messages are encrypted inside HTTPS. A
+detector that relies on readable domain strings may not have access to those strings when monitoring
+encrypted traffic.
+The problem addressed by this project is to evaluate how effectively machine-learning classifiers can identify
+benign versus exfiltration-labelled traffic in conventional DNS and DoH datasets, and to investigate how
+detection performance and feature relevance change when the dataset, protocol, or feature representation
+changes.
+2.2 Key definitions
+Term Meaning in this project
+DNS The Domain Name System maps domain names to DNS records
+and related information.
+Do53 Conventional DNS, commonly associated with DNS over port
+53; query names and DNS fields may be observable depending
+on capture position.
+DoH DNS over HTTPS. DNS messages are transported over HTTPS,
+which encrypts the content in transit.
+DNS tunneling Using DNS exchanges as a carrier for data or communications
+outside ordinary DNS use.
+Data exfiltration Unauthorized transfer of information out of a system or
+network.
+Feature A measurable input value used by a model, such as query
+length, TTL variability, packet size, or flow duration.
+Label The target class, for example benign or exfiltration, assigned
+by the dataset or label-generation procedure.
+Generalization The ability to perform on genuinely unseen examples,
+conditions, datasets, campaigns, or protocols.
+Team reference document • 14 October 2026
+
+--- PAGE 4 ---
+DNS COVERT-CHANNEL DETECTION | PROJECT GUIDE
+2.3 Why conventional DNS and DoH differ
+Figure 2. Observable feature spaces differ between conventional DNS and DoH.
+For Do53, lexical signals such as query length, character entropy, label composition, DNS record types, and
+TTL-related statistics may be available. For DoH, a passive observer generally cannot inspect the encrypted
+DNS query name, so detection often relies on traffic-level, flow-level, temporal, statistical, and observable TLS
+characteristics. The exact set depends on the dataset and where traffic was captured.
+Important distinction DNS tunneling is a technique; data exfiltration is an objective. Malicious DoH
+traffic, DGA-related traffic, and DNS exfiltration are overlapping but not identical labels. Interpret each
+benchmark according to its own documented target label.
+3. Research Gap, Objectives, Questions, and Hypotheses
+3.1 Research gap
+The research paper argues that many detection studies report strong results on an individual dataset, often
+under a random train/test split. Such scores do not automatically demonstrate robustness across a different
+resolver, network, collection period, attack tool, campaign, or protocol. This project is designed to go beyond a
+single within-dataset score by comparing models, studying feature groups, testing transfer in both directions,
+and inspecting model explanations.
+3.2 Objectives
+ Build a unified comparative framework for conventional DNS and DoH exfiltration-labelled datasets.
+ Compare six established machine-learning classifiers under documented evaluation conditions.
+ Measure precision, recall, F1, ROC-AUC, PR-AUC, false-positive rate, and computational cost where
+available.
+ Investigate whether models trained on one protocol or dataset can transfer to another.
+ Assess the role of feature groups and compact top-K feature sets.
+ Use feature importance and SHAP to explain what information trained models use.
+ Use external benchmarks to provide additional evidence, while respecting their label and feature
+definitions.
+ Create a reproducible dashboard/report workflow that traces results to saved artifacts.
+3.3 Research questions from the paper
+ RQ1: How effectively can different ML models detect conventional DNS-based data exfiltration?
+ RQ2: How effectively can the same models detect DoH-based data exfiltration?
+ RQ3: How well do models trained on conventional DNS exfiltration generalize to DoH exfiltration?
+ RQ4: How well do models trained on DoH exfiltration generalize to conventional DNS exfiltration?
+ RQ5: Which feature groups remain informative when DNS content becomes encrypted?
+ RQ6: Which ML approach gives a useful balance among recall, precision, F1, PR-AUC, FPR, and
+computational cost?
+ RQ7: Which features contribute most strongly to model decisions, and do they remain stable across
+datasets?
+Team reference document • 14 October 2026
+
+--- PAGE 5 ---
+DNS COVERT-CHANNEL DETECTION | PROJECT GUIDE
+3.4 Research hypotheses
+Hypothesis Statement Evidence required
+H1 Models will achieve strong performance in Valid held-out E1/E2 evaluations, correct
+within-dataset DNS and DoH detection. labels, no leakage, and suitable metrics for
+imbalanced data.
+H2 Cross-dataset/protocol performance will be Comparable within-data and valid cross-
+lower than within-dataset performance data results; proxy experiments alone are
+because feature distributions and insufficient.
+observable information differ.
+H3 Flow-level and temporal features will be Controlled feature comparison using
+more transferable to DoH than plaintext consistently defined measurements and
+DNS lexical features. valid target labels.
+H4 The most important features identified by Comparable model explanations and
+explainable ML will differ between stability checks across appropriate
+conventional DNS and DoH environments. runs/datasets.
+How to conclude A hypothesis may be supported, partially supported, not supported, inconclusive, or not
+evaluated. Missing or invalid evidence is not evidence that a hypothesis is false.
+4. Datasets and Feature Spaces
+The research paper uses a layered data strategy: paired UFU datasets are primary because they directly
+represent conventional DNS and DoH exfiltration; established 2020/2021 datasets are external benchmarks;
+DNSTunnel2026 is an additional external-validation target when data, labels, and features allow a defensible
+evaluation.
+Dataset Published / reported size Role Key notes
+UFU-Do53-EXF 5,351,064 records; 29 features; Primary Do53 About 10.1% positive in the
+4,812,119 benign and 538,945 published count. Includes lexical,
+exfiltration. DNS and domain-context features.
+UFU-DoH-EXF 1,048,575 records; 28 features; Primary DoH About 3.1% positive in the
+1,016,438 benign and 32,137 published count. Includes
+exfiltration. encrypted-flow/timing/statistical
+features.
+CIC-Bell-DNS-EXF-2021 A recent project note reports 18 External DNS benchmark Stateless: 12 numeric lexical
+Stateless and 18 Stateful CSVs; features. Stateful: 20 numeric
+1,000 deduplicated records per RR/TTL-related features. Folder-
+representation in one evaluation. based labels need documented
+validation.
+CIRA-CIC-DoHBrw-2020 One project note reports 995 External DoH benchmark l2-benign.csv and l2-malicious.csv
+deduplicated L2 flows, split 796 reportedly used. The task is
+train / 199 test. benign DoH vs malicious DoH
+tunneling, not automatically
+exfiltration.
+DNSTunnel2026 The project notes describe External validation Counts, labels, feature definitions,
+train.csv and test.csv, with a and transfer compatibility must
+reported 38-feature schema. be confirmed from actual files.
+Team reference document • 14 October 2026
+
+--- PAGE 6 ---
+DNS COVERT-CHANNEL DETECTION | PROJECT GUIDE
+4.1 Published counts versus experiment counts
+The large counts in the paper describe the published primary datasets. Experiment runs may use smaller
+samples—for example, the synchronized E1/E2 runs discussed later target a 15,000-row sample. A run must
+report the number of rows loaded, deduplicated, sampled, and retained after preprocessing. A result based on
+15,000 sampled rows must not be described as training on every row of a 5.35-million-row dataset.
+4.2 Where data may reside
+The project notes state that dataset discovery may look outside icsproject, including a sibling directory such as
+`..\DNS_Covert_Channel_Project\data\raw\`. Therefore, an absent folder inside icsproject alone does not prove a
+dataset is unavailable. The configured discovery paths and actual loaded file paths should be checked and
+saved in the run manifest.
+4.3 Why feature compatibility matters
+The primary UFU CSVs have been reported to share zero exact non-label feature columns. This is not, by itself,
+a complete semantic proof that no equivalent measurements can be derived, but it prevents direct matrix
+transfer using the existing columns. Features must be comparable in definition, units, observation window
+and aggregation level—not merely have similar names.
+PCAP limitation The shared E3/E4 diagnostic output reports incomplete DNS-360 PCAP archives. One
+output states Do53 is missing 2 of 34 parts and DoH is missing 16 of 66 parts; another checklist describes
+11 missing DoH parts. This discrepancy must be reconciled from the actual archive inventory before the
+research paper states an exact count.
+5. System Architecture and End-to-End Workflow
+Figure 3. Main data-to-results workflow.
+5.1 Components
+Component Purpose Expected output
+Configuration / discovery Resolves dataset paths, result directories, Traceable input paths and experiment
+and metadata. configuration.
+Dataset loader / audit Reads records, checks columns, labels, Validated dataset summary and usable
+counts, missing values and duplicates. records.
+Preprocessing Separates X and y, splits data, imputes Train/test matrices processed without
+missing values, encodes/scales as needed. fitting transforms on test data.
+Feature engineering / selection Builds lexical, behavioral, flow, timing, or Model input features and selection
+TLS-related features; ranks or selects metadata.
+features when required.
+Model layer Fits LR, KNN, SVM, RF, XGBoost or MLP. Trained estimator and prediction scores.
+Experiment controller Implements E1–E8 designs and selects Run-specific outputs and status.
+source/target datasets.
+Metrics / explainability Computes metrics, confusion matrices, JSON, prediction files, figures and
+feature importance, SHAP and plots. interpretation summaries.
+Team reference document • 14 October 2026
+
+--- PAGE 7 ---
+DNS COVERT-CHANNEL DETECTION | PROJECT GUIDE
+Component Purpose Expected output
+Dashboard / report Displays runs, datasets, hypotheses, outputs Human-readable interface and research
+and downloadable reports. artifacts.
+5.2 Typical run artifacts
+ Run configuration JSON: records the experiment, dataset, model and parameters used.
+ Held-out predictions CSV: should preserve true labels, predicted classes and scores where available.
+ Metrics JSON: stores evaluation metrics and associated run metadata.
+ Plots: confusion matrices, ROC curves, precision-recall curves and comparisons when inputs are available.
+ SHAP artifacts: global or local attribution data and plots for supported, fitted models.
+ Audit/report files: explain data provenance, limitations, hypothesis status and inconsistencies.
+The dashboard should read values from actual artifacts or APIs tied to them. Static text, a JSON file labelled
+Completed, or a chart visible in the UI is not proof by itself that the corresponding experiment was validly
+executed.
+6. Preprocessing and Feature Engineering
+6.1 Preprocessing order
+1. Load the exact dataset file and record its source path, file hash where practical, row count and schema.
+2. Identify the target column and construct X (input features) and y (labels). Remove the target and any
+accidental direct copy of the label from X.
+3. Handle duplicates and missing values according to a documented rule; log how many rows are removed
+or altered.
+4. Split the dataset before learning preprocessing parameters. Use stratification where appropriate for class
+proportions; consider group separation when records share a capture, session, domain or campaign.
+5. Fit the median imputer, scaler, encoder, resampler and supervised feature selector only on the training
+data or within each training fold.
+6. Apply the fitted transformations to validation/test data without refitting them.
+7. Train the model and evaluate only on the designated held-out data. Preserve split identifiers where
+possible.
+The recent project notes state that post-split median imputation and RobustScaler are used in the
+synchronized E1/E2 workflow. That guards against preprocessing statistics leaking from the test set. It does
+not remove leakage already embedded in precomputed context features or caused by related records sharing
+the split.
+6.2 Feature families described by the research design
+Feature family Examples from the design Purpose
+DNS lexical FQDN/query length, label lengths, character Describe structural and character-level
+distribution, Shannon entropy, properties of query names.
+digit/uppercase ratios, dictionary-word
+indicators.
+DNS behavior Query frequency/type, unique Describe repetition and request behavior
+domains/name servers/IPs, response over observations.
+frequency, NXDOMAIN rate, unique-query
+ratio.
+Team reference document • 14 October 2026
+
+--- PAGE 8 ---
+DNS COVERT-CHANNEL DETECTION | PROJECT GUIDE
+Feature family Examples from the design Purpose
+Flow and packet Forward/backward/total packets and bytes, Summarize traffic volume and packet
+packet-size mean/min/max/std, flow characteristics.
+duration, packets/s, bytes/s.
+Temporal Inter-arrival-time mean/min/max/std, Describe timing and temporal regularity.
+request frequency, burstiness, flow
+duration.
+TLS/DoH SNI, ALPN, JA3/fingerprint-type metadata, Use transport metadata available without
+server information where observable. reading encrypted DNS payloads.
+6.3 Feature selection / explanation methods
+Method How it works Caution
+Correlation analysis Finds highly correlated features that may Correlation does not prove two features are
+be redundant. semantically interchangeable.
+Mutual information (MI) Ranks features by statistical association Must be fitted on training data for
+with the target. predictive selection; association is not
+causation.
+Random Forest importance Measures feature contribution under the Can favor features with certain
+model’s tree-importance calculation. distributions/cardinalities and may be
+unstable with correlated inputs.
+SHAP Attributes contributions to individual Explains this model on the explained data;
+predictions; mean absolute values provide does not prove causality or external
+a global ranking. generalization.
+7. The Six Machine-Learning Models
+Model Plain-language description Why included Key consideration
+Logistic Regression (LR) Fits a linear decision boundary Fast, interpretable baseline. Can miss complex nonlinear
+and produces class relationships; threshold influences
+scores/probabilities. F1.
+K-Nearest Neighbors (KNN) Classifies based on nearby Tests whether classes form Sensitive to scaling, distance
+training examples. distinct local neighborhoods. definitions, data size and repeated
+patterns.
+Support Vector Machine (SVM) Learns a separating boundary; Classical high-dimensional Kernel choice, scaling and sample
+linear/kernel configurations classifier. size affect cost and behavior.
+differ.
+Random Forest (RF) Combines many decision trees Strong nonlinear tabular baseline; Can learn dataset/campaign-
+trained on varied offers tree-based importance. specific patterns; importance is
+samples/features. not causal.
+XGBoost (XGB) Sequential gradient-boosted trees Strong tabular baseline; supports Can fit subtle or leaked patterns;
+improve the objective. gain importance and TreeSHAP. tune only on training/validation
+data.
+Multi-Layer Perceptron (MLP) A feed-forward neural network Neural baseline from a different Scaling, regularization, seed and
+learns nonlinear feature model family. architecture affect stability.
+combinations.
+Team reference document • 14 October 2026
+
+--- PAGE 9 ---
+DNS COVERT-CHANNEL DETECTION | PROJECT GUIDE
+A fair comparison requires the same data partition and the same evaluation definition within each
+experiment. A model comparison that mixes different samples, seeds, thresholds, feature subsets or result
+runs may be descriptive, but it is not a controlled head-to-head comparison.
+8. Evaluation Metrics and How to Interpret Them
+Figure 4. The four confusion-matrix outcomes, treating exfiltration as the positive class.
+Metric Meaning Why it matters
+Precision = TP / (TP + FP) Of records predicted as exfiltration, Low precision means more false alarms.
+proportion that are positive.
+Recall = TP / (TP + FN) Of positive records, proportion detected. Low recall means more missed exfiltration-
+labelled records.
+F1 = 2PR / (P + R) Harmonic mean of precision and recall. Balances precision and recall at a chosen
+classification threshold.
+FPR = FP / (FP + TN) Fraction of benign records incorrectly Important because security systems can
+flagged. overwhelm analysts with false alarms.
+ROC-AUC Ranking performance across classification High AUC does not guarantee high F1 at
+thresholds. threshold 0.50.
+PR-AUC Precision–recall curve area. Especially informative when positive
+examples are rare; specify the calculation
+convention.
+Accuracy Fraction of all records classified correctly. Can be misleading when one class
+dominates.
+Training/inference time Measured model-fit and prediction cost. Useful to compare deployment practicality;
+only report if actually recorded.
+8.1 How AUC can be high while F1 is zero
+ROC-AUC assesses ranking over many thresholds; F1 uses predicted classes at one threshold. A model may
+assign every positive record a score greater than every negative record, producing a high ROC-AUC, while all
+positive scores remain below 0.50. At that threshold the model predicts every record as benign, so recall and
+F1 for the positive class are zero. In an actual result, label encoding, probability-column selection, score
+orientation, alignment and the confusion matrix must also be checked before accepting that interpretation.
+9. E1 and E2 — Within-Dataset Detection
+9.1 E1: UFU-Do53-EXF to UFU-Do53-EXF
+Purpose: establish a conventional DNS baseline. The model is trained on a training partition from UFU-Do53-
+EXF and evaluated on held-out records from the same dataset. The experiment can show that features in this
+dataset separate its benign and exfiltration classes, but random splitting does not guarantee that test records
+are independent of campaign/domain patterns in training.
+9.2 E2: UFU-DoH-EXF to UFU-DoH-EXF
+Purpose: establish a baseline for DoH exfiltration using the feature representation in UFU-DoH-EXF. Since the
+target class is reported at about 3.1% in the published data, precision–recall behavior, recall and false-positive
+Team reference document • 14 October 2026
+
+--- PAGE 10 ---
+DNS COVERT-CHANNEL DETECTION | PROJECT GUIDE
+rate should be examined along with F1 and ROC-AUC. A high ROC-AUC alongside a lower F1 can arise from
+threshold behavior or other score/prediction issues and needs metric-level diagnosis.
+9.3 Reported synchronized 15k comparison
+A synchronized-run summary shared during the project discussion reports the following F1 values for the
+newer 15k comparison. The values are reproduced here as reported, not independently recalculated from the
+local JSON files.
+Experiment / dataset RF KNN XGBoost MLP
+E1 / UFU-Do53-EXF 0.9983 0.9983 0.9967 0.9983
+E2 / UFU-DoH-EXF 0.9945 0.9890 0.9946 0.8712
+The latest synchronized comparison authorized KNN, XGBoost and MLP reruns alongside the existing RF
+baseline. LR and SVM values previously shown on the dashboard belong to earlier runs and were not
+necessarily evaluated on the same sample/split. Do not describe all six models as synchronized until LR and
+SVM have matching split artifacts.
+10. E3 and E4 — Cross-Protocol Transfer Diagnostics
+10.1 Intended primary experiments
+Experiment Intended source Intended target Research question
+E3 UFU-Do53-EXF UFU-DoH-EXF Can a Do53-trained model
+work on DoH?
+E4 UFU-DoH-EXF UFU-Do53-EXF Can a DoH-trained model
+work on conventional DNS?
+The primary UFU CSV schemas are reported to share zero exact common features: Do53 has
+lexical/domain/context features while DoH has encrypted-flow features. Directly passing one dataset’s matrix
+into a model trained on the other is therefore invalid unless a defensible shared representation is derived.
+Renaming columns or inventing values is not a scientific solution.
+10.2 Current diagnostic proxy representation
+The live dashboard runs described in the shared outputs use a seven-feature flow representation derived
+from CIC-Bell UDP flows and CIRA-CIC DoH/TLS flows. The shared feature names include flow duration, packet
+count, byte count and packet-size statistics. These runs are labelled Diagnostic only because they do not use
+matched flow windows extracted from the primary DNS-360 Do53 and DoH campaigns.
+E3 diagnostic model Reported F1 Precision Recall ROC-AUC Interpretation
+KNN 0.0937 0.1417 0.0700 0.4637 Poor transfer in this
+proxy run.
+XGBoost 0.6892 0.6089 0.7940 0.7722 Best reported E3 F1
+among the supplied
+runs; still proxy-only.
+SVM 0.1755 0.2230 0.1447 0.4643 Weak transfer in this
+proxy run.
+Team reference document • 14 October 2026
+
+--- PAGE 11 ---
+DNS COVERT-CHANNEL DETECTION | PROJECT GUIDE
+E3 diagnostic model Reported F1 Precision Recall ROC-AUC Interpretation
+MLP 0.1749 0.2235 0.1437 0.3074 Weak transfer in this
+proxy run.
+LR / RF 0.1698 / 0.0476 see run files see run files varies by run Older reported E3
+outputs; verify run
+IDs before making a
+direct head-to-head
+comparison.
+The reported source proxy contained 15,000 flows (5,102 benign; 9,898 exfiltration), and the target proxy
+contained 10,000 flows (7,000 benign; 3,000 exfiltration). These are proxy flow counts, not the published UFU
+dataset counts. The KNN confusion matrix reported TN=5,728, FP=1,272, FN=2,790, TP=210. The XGBoost run
+reported TN=5,470, FP=1,530, FN=618, TP=2,382.
+10.3 Why transfer may fail
+The diagnostic notes describe an observation-unit mismatch: Do53 UDP flows may represent short
+query/response transactions, while DoH TCP/TLS sessions may remain open longer and multiplex multiple
+DNS messages. A raw five-tuple flow duration or packet-size measurement may therefore measure different
+behavior in the two cases. A defensible primary test needs consistent observation windows, time definitions,
+feature units, and ground-truth timestamp alignment.
+10.4 E4 and high AUC with zero F1
+Several E4 runs were reported with F1=0 while RF ROC-AUC varied across artifacts (one report showed about
+0.9978; a later screenshot showed 0.9564). Other E4 models also showed F1=0 with different AUC values.
+Because run outputs differ, do not consolidate these numbers into a final model-comparison table until each
+value is joined to its exact run ID, predictions and configuration. Inspect the score direction, positive class,
+probability column, threshold, and confusion matrix.
+Defensible conclusion for E3/E4 Current E3/E4 proxy outputs are diagnostic evidence about a particular
+flow representation. They do not establish primary UFU-Do53 and UFU-DoH generalization. The primary
+transfer claim remains unresolved until compatible, consistently derived primary features are available.
+11. E5 and E6 — Feature Studies
+11.1 E5: Feature-group ablation
+Ablation removes one feature group at a time and compares performance with a baseline. The research
+design proposes comparisons such as lexical-only, protocol fields, domain context, heuristics, flow-only,
+temporal/common features where the dataset supports them. The goal is to estimate which feature families
+are useful to the fitted model.
+If F1 does not change after removing a group, possible interpretations include redundancy among groups, one
+remaining feature group being sufficient, an insensitive test setup, or an implementation problem that failed
+to remove the requested columns. Verify the actual selected column list for every run. A performance drop
+should never be written into the report unless the measured result shows it.
+Team reference document • 14 October 2026
+
+--- PAGE 12 ---
+DNS COVERT-CHANNEL DETECTION | PROJECT GUIDE
+11.2 E6: Top-K feature selection
+E6 compares a full feature set with compact subsets such as the top 10, 15 or 20 features. The intended trade-
+off is performance versus fewer inputs, reduced complexity, potentially lower inference cost and easier
+interpretation. Feature rankings must be calculated using training data only. Each subset must actually train a
+new model and use the same untouched test split.
+Status conflict to resolve The shared history contains different E5/E6 states: some dashboard views
+reported RF F1=1.0000, an earlier artifact summary said all ablations had zero F1 drop, and a later
+experiment screen marked E5/E6 “Not run.” This document therefore treats E5/E6 as requiring artifact-to-
+dashboard reconciliation before their results are considered verified.
+12. E7 and E8 — External Evaluation
+12.1 E7: External benchmarks
+E7 uses two external datasets, evaluated separately because they use different traffic types and feature
+representations.
+Benchmark Reported setup Reported score summary Important caveat
+CIRA-CIC-DoHBrw-2020 L2 l2-benign.csv vs l2-malicious.csv; Dashboard report: RF F1=0.9950, Represents benign vs malicious
+995 deduplicated flows; 796 train / ROC-AUC=0.9998. DoH/tunneling labels as defined in
+199 test in one run. the dataset; not automatically a
+pure exfiltration task.
+CIC-Bell-DNS-EXF-2021 Stateless 12 numeric lexical features; one Dashboard report: F1=0.8412, Verify exact file list, folder labels,
+reported sample of 1,000 ROC-AUC=0.8220. split, positive-class meaning and
+deduplicated records, 800 train / run-specific artifact.
+200 test.
+CIC-Bell-DNS-EXF-2021 Stateful 20 numeric RR/TTL-related No single confirmed score stated Exact split and result artifact need
+features; one report says 1,000 in this guide. confirmation.
+deduplicated records.
+External benchmark evaluation asks how a model performs on an additional dataset under that dataset’s own
+feature and label definitions. It is not the same as zero-shot transfer from a primary UFU model. If RF was
+trained and tested independently on CIRA-CIC, that demonstrates performance on its own split—not that a
+UFU-trained model transfers to CIRA-CIC.
+12.2 E8: DNSTunnel2026
+E8 is intended to use DNSTunnel2026 as a further external evaluation. The dashboard summaries report an
+external dataset with 38 features and train/test files, and show within-dataset results with limitations. One
+reported dashboard snapshot lists LR F1=0.9974, RF F1=0.9949, and XGBoost F1=0.9971. Treat these as
+reported run outputs pending artifact verification.
+The transfer part of E8 was reported as blocked because the primary Do53 feature schema and
+DNSTunnel2026 window-level schema did not align. A valid evaluation of DNSTunnel2026’s own train/test
+split can still exist even while transfer from a UFU-trained model is blocked. These should have separate
+experiment names, metrics and status labels.
+Team reference document • 14 October 2026
+
+--- PAGE 13 ---
+DNS COVERT-CHANNEL DETECTION | PROJECT GUIDE
+13. Explainability: Feature Importance, SHAP, and Plots
+13.1 What SHAP means
+SHAP (SHapley Additive exPlanations) attributes parts of a model output to individual input features. A local
+explanation describes one prediction; a global summary aggregates contributions across a set of records.
+Mean absolute SHAP values show the average magnitude of a feature’s contribution, not whether high values
+push a prediction toward benign or exfiltration.
+13.2 What the supplied E1/E2 SHAP PDF shows
+Prominent features visible in supplied
+Dataset Interpretation
+plots
+E1: UFU-Do53-EXF var_ttl, num_queries_per_domain, The fitted model places substantial
+contains_dictionary_words, importance on TTL variation and
+num_unique_ttl, query_length, mean_ttl. domain/query context, with lexical
+indicators also contributing.
+E2: UFU-DoH-EXF src2dst_mean_time, The fitted model relies heavily on
+bidirectional_mean_time, directional/bidirectional timing and packet-
+src2dst_min_length, length characteristics that are available in
+bidirectional_min_time, the DoH feature representation.
+bidirectional_max_time,
+src2dst_mean_length,
+bidirectional_stddev_time.
+The submitted two-page visual summary displayed a held-out SHAP subset of n=200. Approximate values read
+from that image included Do53 mean absolute SHAP of about 5.77 for var_ttl, 1.68 for
+num_queries_per_domain and 1.42 for contains_dictionary_words. For DoH, the approximate leading
+magnitudes were 3.51 for src2dst_mean_time, 1.90 for bidirectional_mean_time and 1.26 for
+src2dst_min_length. These are visual readings, not independently verified raw SHAP values; use saved
+attribution data for final paper numbers.
+13.3 Why native feature gain and SHAP can differ
+XGBoost native gain summarizes improvement associated with tree splits during training. SHAP summarizes
+feature contributions to predictions on the explained data. They are different measures and may use different
+data partitions. Correlated features can share or exchange importance, so rank differences are not
+automatically a contradiction.
+13.4 Plot guide
+Plot What it shows Common mistake to avoid
+Class distribution Counts/percentages of benign and positive Ignoring class imbalance or using published
+records. totals for a sampled run.
+Confusion matrix TP, FP, TN, FN at one threshold. Calling a model effective from accuracy alone.
+ROC curve TPR vs FPR across score thresholds. Treating AUC as a guarantee of good default-
+threshold predictions.
+Precision–recall curve Precision vs recall across thresholds. Comparing curves without noting positive-
+class prevalence and split.
+Feature importance A model-specific ranking of influential Interpreting importance as causation or cross-
+predictors. dataset transfer.
+Team reference document • 14 October 2026
+
+--- PAGE 14 ---
+DNS COVERT-CHANNEL DETECTION | PROJECT GUIDE
+Plot What it shows Common mistake to avoid
+SHAP summary/bar plot Contribution magnitudes/directions Assuming absolute SHAP bar charts reveal
+(depending on plot type) across explained direction or causality.
+records.
+Ablation plot Metric changes when groups are excluded. Trusting it unless the intended columns were
+truly removed.
+Top-K plot Performance as feature count is reduced. Selecting features using test labels or reusing
+baseline scores.
+14. Current Reported Results and Status Summary
+The table below consolidates the project status as described in shared dashboard and run summaries. It is a
+handover snapshot, not a fresh execution of the local repository. Where artifacts or runs conflict, the status is
+qualified and the underlying files should be checked before final submission.
+Experiment Reported execution/status What can be said safely
+E1 Within-dataset Do53; synchronized Random-split F1 values are very high. Older
+comparison reported for RF/KNN/XGB/MLP. LR/SVM runs are not necessarily on the same
+split. Generalization requires group-separated
+evidence.
+E2 Within-dataset DoH; synchronized comparison F1 remains high for RF/KNN/XGB and lower for
+reported for RF/KNN/XGB/MLP. MLP in the synchronized summary. The
+positive class is rare in published data; PR-
+AUC/recall/FPR matter.
+E3 Several live runs executed as Diagnostic only Metrics describe that proxy flow setup, not
+using CIC-Bell UDP to CIRA-CIC DoH proxy primary UFU cross-protocol transfer.
+flows.
+E4 Diagnostic proxy runs reported; F1=0 in Inspect exact run IDs, labels, probability
+multiple results, while AUC varies by run. direction, test predictions and threshold. Do
+not merge conflicting AUC values.
+E5 Status/metrics conflict across dashboard and Treat as unverified until current run artifacts
+artifacts. show feature groups, baseline, actual fits, same
+split and metric outputs.
+E6 Status/metrics conflict across dashboard and Treat as unverified until train-only feature
+artifacts. ranking and fresh models for each Top-K
+subset are confirmed.
+E7 External CIRA/CIC-Bell evaluations reported Verify input files, task labels, sampling, test
+with separate metrics. split and result files. Do not claim UFU transfer
+from independent benchmark runs.
+E8 DNSTunnel2026 within-dataset scores Report within-dataset and transfer results
+reported; transfer audit blocked. separately; verify the 38-feature schema and
+labels.
+14.1 Synchronized E1/E2 F1 values shared during the project
+Model E1 Do53 F1 E2 DoH F1 Comparison note
+Random Forest 0.9983 0.9945 Existing 15k reference baseline
+in the synchronized summary.
+KNN 0.9983 0.9890 New synchronized 15k runs.
+Team reference document • 14 October 2026
+
+--- PAGE 15 ---
+DNS COVERT-CHANNEL DETECTION | PROJECT GUIDE
+Model E1 Do53 F1 E2 DoH F1 Comparison note
+XGBoost 0.9967 0.9946 New synchronized 15k runs.
+MLP 0.9983 0.8712 New synchronized 15k runs.
+Logistic Regression 0.9985 (older run) 0.6820 (older run) Not rerun in the synchronized
+task; do not label split-matched.
+SVM 0.9990 (older run) 0.7263 (older run) Not rerun in the synchronized
+task; do not label split-matched.
+The synchronized F1 values above are from the run summary shared in the conversation. Before using them
+in a submitted table, cross-check each with its run configuration, test indices, predictions CSV, and metrics
+JSON. When a score is rounded to four decimals, keep the underlying stored value for calculations.
+14.2 Why some results conflict
+ Archived 12k and synchronized 15k runs can produce different scores because the sample and split differ.
+ The dashboard, report generator, metrics JSONs, and experiment details have previously shown
+inconsistent statuses or numbers.
+ E3 has multiple model-specific proxy run IDs and different outputs; they may not share the same split or
+configuration.
+ E4 has more than one reported ROC-AUC value for the same model across different run summaries.
+ E5/E6 have been shown as both completed with perfect RF results and not run in different views.
+ E7 has a combined/external card and separate benchmark results; separate dataset values should be
+preserved.
+ E8 within-dataset evaluation and transfer validation are distinct and should not share a single status or
+score.
+Rule for Table V Use one clearly identified run per cell or label the table as a mixed-run status summary.
+A dash means “not available from the evidence used,” not zero. E3/E4 must be marked as diagnostic proxy
+results until the primary transfer setup is validated.
+15. Threats to Validity and Scientific Integrity
+15.1 Data leakage
+Data leakage occurs when information unavailable at prediction time influences the trained model or
+evaluation. It can happen through direct target leakage, identifiers or metadata that reveal labels, fitting
+preprocessing on the whole dataset, feature selection using test labels, duplicate records across the split, or
+correlated examples from the same source group. Correctly fitting a scaler on train-only data addresses only
+one subset of these risks.
+15.2 Group-separated evaluation
+Random-row splits can put examples from the same domain, campaign, session, capture or generator in both
+training and testing. A group-separated split holds out complete groups, which better tests whether the model
+transfers to new sources of variation. The grouping key must match the scientific claim: unseen domains,
+sessions, campaigns and future time periods are related but not identical generalization tests.
+Team reference document • 14 October 2026
+
+--- PAGE 16 ---
+DNS COVERT-CHANNEL DETECTION | PROJECT GUIDE
+A shared audit summary reports that Do53 group-separated F1 values ranged approximately from 0.0041 to
+0.4657 across reported configurations, while DoH session-group F1 was around 0.6365 for several models.
+These ranges illustrate a substantial generalization gap but must be tied to exact artifact names/configurations
+before publication.
+15.3 Data provenance and synthetic data
+Synthetic data can test whether loaders, APIs, charts and experiment runners function. It cannot establish that
+a detector works on real network traffic. Each run should identify whether its data is authentic, derived from
+packet captures, synthetic, or a proxy constructed from another benchmark. Synthetic rows or labels must
+never be presented as genuine external benchmark samples.
+15.4 Small benchmark samples
+The reported CIRA L2 test set has 199 flows in one evaluation, and the reported CIC-Bell stateless test set has
+200. Metrics from small test sets can vary substantially with a small number of errors. The report should
+include class counts, confusion matrices, and uncertainty analysis where feasible. Deduplication should be
+described, and related records should not cross the split unnoticed.
+15.5 Evidence hierarchy
+Label Meaning
+Verified Input, labels, run configuration, predictions and metrics have
+been checked for the stated claim.
+Executed, needs validation The code ran and produced outputs, but one or more validity
+checks remain unresolved.
+Diagnostic/proxy only An exploratory setup ran, but it does not establish the
+intended primary claim.
+Blocked Required data, labels, or feature compatibility are unavailable
+for the intended experiment.
+Not run There is no adequate evidence of execution.
+Synthetic demonstration Pipeline run uses generated data and is not real-traffic
+validation.
+16. Running, Reviewing, and Reporting the Project
+16.1 What teammates should inspect for any run
+8. Find the exact run ID and experiment ID.
+9. Open the run configuration JSON and record the dataset path, model, sample limit, seed, feature list and
+split strategy.
+10. Confirm the input provenance and label meanings.
+11. Check the prediction CSV has aligned true labels, predicted classes and prediction scores where
+applicable.
+12. Recalculate metrics from predictions if possible; do not rely only on dashboard text.
+13. Open the confusion matrix, ROC/PR curves and relevant explanation output.
+14. Compare the displayed dashboard values with the metric JSON and report output.
+Team reference document • 14 October 2026
+
+--- PAGE 17 ---
+DNS COVERT-CHANNEL DETECTION | PROJECT GUIDE
+15. Record the status as verified, executed/unverified, diagnostic, blocked, not run, or synthetic
+demonstration.
+16.2 Known local workflow and commands
+The development workflow shared previously used a Windows PowerShell environment, the `icsproject`
+directory, a Python virtual environment, a backend API, and a Vite frontend served at localhost port 5173.
+Confirm the current README and package scripts before relying on the exact command sequence.
+Task Command / guidance
+Open project folder `cd "C:\Users\Sharayu Pathare\Desktop\icsproject"`
+Check Python `python --version` and `python -c "import sys;
+print(sys.executable)"`
+Backend (previously used) `python -m uvicorn backend.server:app --host 127.0.0.1 --port 8000
+--reload` — verify `backend.server:app` still matches the current
+code.
+Frontend Run the dev script defined in `package.json` (often `npm run dev`
+for Vite); verify the current scripts rather than guessing.
+Research report (previously used) `python -c "import backend.report_generator as rg;
+print(rg.generate_research_report())"`
+Experiment execution Use the current dashboard live-run workflow or a confirmed CLI
+entry point. The earlier `python -m backend.experiments run ...`
+command returned silently, so do not assume it executes
+experiments unless the current module documents that CLI.
+16.3 Checkpoint and change safety
+The project history reports an on-disk snapshot at `checkpoints/checkpoint_20261013_1008/`, an integrity
+manifest `CHECKPOINT_MANIFEST.json`, and a restore guide `checkpoint.md`, with 235 files reported as
+SHA-256 verified. This is a useful safeguard, but teams should check the manifest coverage and restore
+instructions before changing experiment logic. New audit runs should use separate run-specific output paths;
+historical metrics should not be silently overwritten.
+17. Viva Preparation and Glossary
+17.1 Short project explanation (30 seconds)
+Suggested explanation Our project compares six machine-learning models for detecting DNS
+exfiltration-labelled traffic in conventional DNS and DNS-over-HTTPS datasets. We evaluate within-dataset
+performance, investigate cross-protocol and external generalization, test feature groups and compact
+feature sets, and use SHAP to understand model decisions. A key finding from our audit is that near-
+perfect random-split scores can fall under group-separated evaluation, so generalization and data
+provenance are critical.
+Team reference document • 14 October 2026
+
+--- PAGE 18 ---
+DNS COVERT-CHANNEL DETECTION | PROJECT GUIDE
+17.2 Likely viva questions
+Question Answer
+Why use DNS for exfiltration? DNS is widely needed, so it can be attractive to abuse as a covert
+path for encoded data.
+Why is DoH harder to inspect? DNS messages are carried inside HTTPS, hiding the query payload
+from a passive observer without decryption.
+Why compare six classifiers? They represent different model families and provide a broader
+performance/complexity comparison.
+Why report PR-AUC as well as ROC-AUC? PR-AUC is often more informative when the positive class is rare.
+Can F1 be 1.0? Yes, on a particular test set. It does not prove universal
+generalization or rule out leakage.
+Why can ROC-AUC be high but F1=0? Good score ranking can coexist with a threshold that predicts no
+positive examples; also check label and score alignment.
+Why is E3 diagnostic only? The current proxy features originate from different external traffic
+sources, not matched flow windows from both primary UFU
+datasets.
+What does E5 do? Removes feature groups to measure how model performance
+changes.
+What does E6 do? Compares full and top-K feature sets to study
+compactness/performance trade-offs.
+What does SHAP tell us? How the fitted model attributes contributions to predictions on the
+explained samples; it does not prove causality.
+Why are datasets imbalanced? Benign records substantially outnumber exfiltration records in
+both primary datasets.
+What is the biggest limitation? Generalization and feature compatibility; random-split results can
+exploit dataset-specific patterns.
+Does a CIRA result prove exfiltration detection? Only if the benchmark label/task corresponds to the exfiltration
+claim; malicious DoH and exfiltration are not identical.
+Why can E8 be partly completed? Within-dataset train/test evaluation may be possible while
+primary-to-DNSTunnel transfer is blocked by feature
+incompatibility.
+What makes an experiment reproducible? Traceable inputs, labels, split indices, seed, configuration,
+predictions, metrics and artifact provenance.
+17.3 Glossary
+Term Meaning
+Ablation Experiment that removes a feature group to measure its
+contribution.
+AUC Area under a curve; ROC-AUC measures ranking over thresholds.
+Class imbalance One class appears much more often than another.
+Cross-dataset evaluation Testing on a dataset different from the training dataset.
+Domain/campaign group Records related to a shared domain, attack campaign, or collection
+source.
+Team reference document • 14 October 2026
+
+--- PAGE 19 ---
+DNS COVERT-CHANNEL DETECTION | PROJECT GUIDE
+Term Meaning
+Feature leakage Input contains information that makes the label easy to infer in a
+way unavailable for intended deployment.
+PR-AUC Area under precision–recall curve.
+RobustScaler Transforms features using statistics based on median and quantile
+range.
+SHAP Framework for attributing model output contributions to input
+features.
+Stratified split Split that attempts to preserve class proportions.
+Zero-shot transfer Train on a source dataset and test on a target without target-data
+retraining.
+18. References
+The following entries reproduce the reference list included in the project research-paper draft. Check each
+publisher record for final citation metadata and access information before submitting a formal paper.
+[1] C. Borges et al., “DNS-360 Dataset,” Federal University of Uberlândia (UFU), 2026. [Online]. Available:
+https://github.com/CborgesUFU/DNS-360-Dataset.
+[2] S. Mahdavifar, A. H. Salem, P. Victor, M. Garzon, A. H. Razavi, N. Hellberg, and A. H. Lashkari, “Lightweight
+hybrid detection of data exfiltration using DNS based on machine learning,” in Proc. 11th IEEE Int. Conf.
+Communication and Network Security (ICCNS), Weihai, China, Dec. 2021.
+[3] K. Jerábek, K. Hynek, T. Cejka, and O. Ryšavý, “Collection of datasets with DNS over HTTPS traffic,” Data in
+Brief, vol. 42, Art. no. 108310, 2022, doi: 10.1016/j.dib.2022.108310.
+[4] M. Zhan, Y. Li, G. Yu, B. Li, and W. Wang, “Detecting DNS over HTTPS based data exfiltration,” Computer
+Networks, vol. 209, Art. no. 108919, 2022, doi: 10.1016/j.comnet.2022.108919.
+[5] K. Jerábek, K. Hynek, and O. Ryšavý, “Comparative analysis of DNS over HTTPS detectors,” Computer
+Networks, vol. 247, Art. no. 110452, 2024, doi: 10.1016/j.comnet.2024.110452.
+[6] S. Kuang, W. Wang, Y. Ye, and L. Peng, “HHBT: DNS tunneling detection via hybrid hierarchical
+bidirectional transformer,” Computer Networks, vol. 275, Art. no. 111919, 2025, doi:
+10.1016/j.comnet.2025.111919.
+[7] L. F. Gonzalez Casanova and P.-C. Lin, “Malicious network traffic detection for DNS over HTTPS using
+machine learning algorithms,” APSIPA Trans. Signal Inf. Process., vol. 12, no. 2, pp. 1–24, 2023, doi:
+10.1561/116.00000058.
+[8] R. Mitsuhashi, Y. Jin, K. Iida, T. Shinagawa, and Y. Takai, “Detection of DGA-based malware
+communications from DoH traffic using machine learning analysis,” in Proc. IEEE 20th Consumer
+Communications & Networking Conf. (CCNC), 2023, pp. 224–229, doi: 10.1109/CCNC51644.2023.10059835.
+[9] K. Jerábek, K. Hynek, O. Ryšavý, and I. Burgetová, “DNS over HTTPS detection using standard flow
+telemetry,” IEEE Access, vol. 11, 2023, doi: 10.1109/ACCESS.2023.3275744.
+[10] M. MontazeriShatoori, L. Davidson, G. Kaur, and A. H. Lashkari, “Detection of DoH tunnels using time-
+series classification of encrypted traffic,” in Proc. 2020 IEEE Int. Conf. Dependable, Autonomic and Secure
+Computing (DASC/PiCom/CBDCom/CyberSciTech), 2020, pp. 63–70, doi: 10.1109/DASC-PICom-CBDCom-
+CyberSciTech49142.2020.00026.
+Team reference document • 14 October 2026
+
+--- PAGE 20 ---
+DNS COVERT-CHANNEL DETECTION | PROJECT GUIDE
+[11] H. S. Talabani, Z. K. Abdul, and H. M. M. Saleh, “DNS over HTTPS tunneling detection system based on
+selected features via Ant Colony Optimization,” Future Internet, vol. 17, no. 5, Art. no. 211, 2025, doi:
+10.3390/fi17050211.
+[12] L. Li, Y. Zhu, Y. Li, W. Qiao, Z. Cui, S. Cui, B. Jiang, and Z. Lu, “Towards effective black-box attacks on DoH
+tunnel detection systems,” Computer Networks, vol. 270, Art. no. 111524, 2025, doi:
+10.1016/j.comnet.2025.111524.
+[13] S. Niktabe, A. H. Lashkari, and A. H. Roudsari, “Unveiling DoH tunnel: Toward generating a balanced DoH
+encrypted traffic dataset and profiling malicious behavior using inherently interpretable machine
+learning,” Peer-to-Peer Networking and Applications, vol. 17, pp. 507–531, 2024, doi: 10.1007/s12083-023-
+01597-4.
+[14] M. Sammour, M. F. I. Othman, A. Hassan, O. Bhais, and M. S. Talib, “Advanced DNS tunneling detection: A
+hybrid reinforcement learning and metaheuristic approach,” Frontiers in Computer Science, vol. 7, Art. no.
+1728980, 2025, doi: 10.3389/fcomp.2025.1728980.
+[15] K. Hynek et al., “Summary of DNS over HTTPS abuse,” IEEE Access, vol. 10, pp. 54668–54680, 2022, doi:
+10.1109/ACCESS.2022.3175497.
+[16] I. F. Kilincer, F. Ertam, and A. Sengur, “Machine learning methods for cyber security intrusion detection:
+Datasets and comparative study,” Computer Networks, vol. 188, Art. no. 107840, 2021, doi:
+10.1016/j.comnet.2021.107840.
+Final Guidance for the Team
+When presenting the project, always separate (1) the research design, (2) the code that exists, (3) the
+experiments that actually ran, and (4) the claims supported by valid evidence. The same dashboard may
+contain archived random-split metrics, synchronized runs, diagnostic proxies, external benchmark results,
+and blocked transfer evaluations. A good explanation identifies each by its run ID and data source.
+The most defensible overall message is: the project compares six classifiers across conventional DNS and DoH
+exfiltration datasets, explores feature relevance using ablation and SHAP, and investigates whether good
+within-dataset results generalize. The audit suggests the generalization question is central because
+performance can drop substantially under group-separated testing, while current primary cross-protocol
+transfer remains constrained by incompatible features and incomplete PCAP archives.
+Before formal submission Reconcile the E3/E4 run-specific AUC discrepancies, E5/E6 status conflict,
+benchmark sample counts/splits, DoH PCAP missing-part count, and every final Table V value against the
+current metric JSON, prediction CSV and run configuration. Those are evidence-management issues; do
+not resolve them by choosing the best-looking values.
+Team reference document • 14 October 2026

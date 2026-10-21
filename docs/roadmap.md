@@ -1,0 +1,12 @@
+# Implementation order and acceptance criteria
+
+1. **Initialization (this delivery):** preserve supplied PDF, audit sources/citations, define protocol, install reproducible environment, implement strict loader/splits/six models/metrics/SATFS, test scientific invariants, run visibly synthetic integration checks. No large acquisition.
+2. **Acquire and inventory primary CSVs:** recheck licences and pinned artifact list; select only the seven required archive parts; verify size/hash/integrity and safe expanded paths; audit true headers/counts/types/missingness/duplicates. Do not clone the whole 16 GB repository by default.
+3. **Reproduce E1/E2:** add supplied split support and typed categorical pipelines; inspect normalization scope, aggregate leakage and group metadata; run all six models on one shared small split before scaling. Save predictions and regenerate metrics independently.
+4. **Strengthen generalization evidence:** causal aggregate reconstruction or exclusion, domain/capture/session/time partitions, purged overlapping histories, group-preserving capacity samples, reproducible source-only tuning, confidence intervals.
+5. **Enable primary transfer:** define a harmonized packet-observable window extractor for both protocols; test units, time semantics, boundary conventions and timestamp labels. Acquire PCAPs only after a storage/CPU plan. Require complete relevant campaigns. No ad-hoc column renaming or fake values.
+6. **Run SATFS study:** paired A/B/C, both directions, supported k, five seeds, adaptation-size/bin/permutation sensitivity and negative controls; save ranking stability and actual costs. Preserve failures and non-improvements.
+7. **Feature analysis and external validation:** controlled E5, source MI/RF/SHAP alternatives, saved SHAP values, separate CIC/CIRA fits versus genuine transfer, optional DNSTunnel after rights/schema/group checks.
+8. **Demonstration and paper:** offline scored-feature demo, then optional local API/dashboard backed by run artifacts; actual traffic-feature inference contract; revise tables/figures/discussion only from measured genuine results and qualified uncertainty.
+
+Final experiment promotion requires provenance, compatible measurements, independent partitions, train-only fit/selection, frozen thresholds, predictions that reproduce displayed metrics, and a stated claim limit. Each failing gate is recorded, never patched with invented data.

@@ -1,0 +1,27 @@
+{
+  "status": "proposed_not_run",
+  "seed_set": [
+    42,
+    43,
+    44,
+    45,
+    46
+  ],
+  "models": [
+    "lr",
+    "knn",
+    "svm",
+    "rf",
+    "xgb",
+    "mlp"
+  ],
+  "top_k": [
+    10,
+    15,
+    20
+  ],
+  "primary_outcome": "positive-class average precision",
+  "cross_protocol_gate": "harmonized extractor, semantics, units, observation windows and provenance groups",
+  "satfs_novelty": "unresolved",
+  "measured_genuine_results": null
+}

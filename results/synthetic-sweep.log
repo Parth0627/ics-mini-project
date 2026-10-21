@@ -1,0 +1,125 @@
+SYNTHETIC lr k=10 within: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093518Z-seed42-hm2vxvhs
+SYNTHETIC lr k=10 zero_shot: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093518Z-seed42-h3fbu2zo
+SYNTHETIC lr k=10 adaptation_assisted: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093519Z-seed42-fvq2j_6b
+SYNTHETIC lr k=15 within: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093519Z-seed42-1pwz4nx6
+SYNTHETIC lr k=15 zero_shot: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093519Z-seed42-day7cbc2
+SYNTHETIC lr k=15 adaptation_assisted: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093519Z-seed42-tso7u412
+SYNTHETIC lr k=20 within: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093519Z-seed42-m5a8obvb
+SYNTHETIC lr k=20 zero_shot: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093520Z-seed42-msnpsagx
+SYNTHETIC lr k=20 adaptation_assisted: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093520Z-seed42-0zl_57f4
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/joblib/externals/loky/backend/context.py:134: UserWarning: Could not find the number of physical cores for the following reason:
+invalid literal for int() with base 10: ''
+Returning the number of logical cores instead. You can silence this warning by setting LOKY_MAX_CPU_COUNT to the number of cores you want to use.
+  warnings.warn(
+  File "/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/joblib/externals/loky/backend/context.py", line 264, in _count_physical_cores
+    cpu_count_physical = _count_physical_cores_darwin()
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/joblib/externals/loky/backend/context.py", line 420, in _count_physical_cores_darwin
+    return int(cpu_info)
+           ^^^^^^^^^^^^^
+SYNTHETIC knn k=10 within: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093520Z-seed42-dsqm4mmb
+SYNTHETIC knn k=10 zero_shot: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093520Z-seed42-8vdix6r5
+SYNTHETIC knn k=10 adaptation_assisted: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093520Z-seed42-o3b6its1
+SYNTHETIC knn k=15 within: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093521Z-seed42-1h5kf0nk
+SYNTHETIC knn k=15 zero_shot: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093521Z-seed42-g6erej3x
+SYNTHETIC knn k=15 adaptation_assisted: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093521Z-seed42-16ftoi2t
+SYNTHETIC knn k=20 within: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093521Z-seed42-rff6uu2x
+SYNTHETIC knn k=20 zero_shot: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093522Z-seed42-meb6srqd
+SYNTHETIC knn k=20 adaptation_assisted: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093522Z-seed42-dh0wozim
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+SYNTHETIC svm k=10 within: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093522Z-seed42-npq99mqe
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+SYNTHETIC svm k=10 zero_shot: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093522Z-seed42-i1ugc3aj
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+SYNTHETIC svm k=10 adaptation_assisted: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093523Z-seed42-27_bxitx
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+SYNTHETIC svm k=15 within: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093523Z-seed42-nddgpddc
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+SYNTHETIC svm k=15 zero_shot: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093523Z-seed42-ry3_z9_c
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+SYNTHETIC svm k=15 adaptation_assisted: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093524Z-seed42-gcokmg1p
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+SYNTHETIC svm k=20 within: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093524Z-seed42-anen54my
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+SYNTHETIC svm k=20 zero_shot: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093524Z-seed42-_21yssvn
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+/Users/avglarry0627/IcsMiniProject/.venv/lib/python3.11/site-packages/sklearn/svm/_base.py:236: FutureWarning: The `probability` parameter was deprecated in 1.9 and will be removed in version 1.11. Use `CalibratedClassifierCV(SVC(), ensemble=False)` instead of `SVC(probability=True)`
+  warnings.warn(
+SYNTHETIC svm k=20 adaptation_assisted: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093525Z-seed42-dm4qor0d
+SYNTHETIC rf k=10 within: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093525Z-seed42-7rgn9l0x
+SYNTHETIC rf k=10 zero_shot: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093525Z-seed42-c269hbx0
+SYNTHETIC rf k=10 adaptation_assisted: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093526Z-seed42-gr31m9be
+SYNTHETIC rf k=15 within: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093526Z-seed42-qrk9nqgo
+SYNTHETIC rf k=15 zero_shot: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093527Z-seed42-_ukckc54
+SYNTHETIC rf k=15 adaptation_assisted: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093527Z-seed42-nu3b47su
+SYNTHETIC rf k=20 within: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093528Z-seed42-3vlh7tus
+SYNTHETIC rf k=20 zero_shot: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093528Z-seed42-_13jg34u
+SYNTHETIC rf k=20 adaptation_assisted: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093528Z-seed42-gyuf4ebo
+SYNTHETIC xgb k=10 within: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093529Z-seed42-ul0movj2
+SYNTHETIC xgb k=10 zero_shot: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093529Z-seed42-qeglfcp1
+SYNTHETIC xgb k=10 adaptation_assisted: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093530Z-seed42-i4yzkuwv
+SYNTHETIC xgb k=15 within: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093530Z-seed42-cpeq67t0
+SYNTHETIC xgb k=15 zero_shot: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093530Z-seed42-4t2jh800
+SYNTHETIC xgb k=15 adaptation_assisted: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093530Z-seed42-8j4ufm0t
+SYNTHETIC xgb k=20 within: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093531Z-seed42-eascku_p
+SYNTHETIC xgb k=20 zero_shot: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093531Z-seed42-50cr4g7f
+SYNTHETIC xgb k=20 adaptation_assisted: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093531Z-seed42-x26tg_e6
+SYNTHETIC mlp k=10 within: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093531Z-seed42-aa81mx05
+SYNTHETIC mlp k=10 zero_shot: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093532Z-seed42-sd0mabi8
+SYNTHETIC mlp k=10 adaptation_assisted: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093533Z-seed42-xddmq_0_
+SYNTHETIC mlp k=15 within: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093533Z-seed42-205ztktm
+SYNTHETIC mlp k=15 zero_shot: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093534Z-seed42-halybbd6
+SYNTHETIC mlp k=15 adaptation_assisted: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093534Z-seed42-q0494vww
+SYNTHETIC mlp k=20 within: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093535Z-seed42-r_0q1j6r
+SYNTHETIC mlp k=20 zero_shot: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093536Z-seed42-qhy9hb6w
+SYNTHETIC mlp k=20 adaptation_assisted: /Users/avglarry0627/IcsMiniProject/results/runs/SYNTHETIC-PIPELINE-DEMONSTRATION-20261014T093536Z-seed42-n6op3lpt
+Synthetic integration demo complete. These metrics do not validate real DNS/DoH detection.
